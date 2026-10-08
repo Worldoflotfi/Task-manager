@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice 3 - Taille de la fenêtre</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .info {
+      font-size: 18px;
+      margin: 10px;
+      padding: 10px;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      width: 300px;
+      text-align: center;
+    }
+
+    .info span {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Taille de la fenêtre</h1>
+    <div class="info">
+      <p><span>Largeur :</span> <span id="width">0</span> px</p>
+      <p><span>Hauteur :</span> <span id="height">0</span> px</p>
+    </div>
+  </div>
+
+  <script>
+    // Fonction pour mettre à jour la taille de la fenêtre en temps réel
+    function updateWindowSize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      // Mettre à jour les éléments avec les nouvelles dimensions
+      document.getElementById("width").textContent = width;
+      document.getElementById("height").textContent = height;
+    }
+
+    // Initialiser les dimensions au chargement de la page
+    window.onload = updateWindowSize;
+
+    // Ajouter un événement pour chaque redimensionnement de la fenêtre
+    window.addEventListener("resize", updateWindowSize);
+  </script>
+
+</body>
+</html>

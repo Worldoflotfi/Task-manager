@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice 4 - Window, Screen, Navigator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    label {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      padding: 8px;
+      font-size: 14px;
+      width: 200px;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 400px;
+      height: 100px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      color: white;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .calque {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    #clq_coul {
+      position: relative;
+      text-align: center;
+    }
+
+    #cld_lang {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 50%;
+      text-align: center;
+    }
+
+    .output {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Formulaire d'Interaction</h1>
+
+    <!-- Champs de saisie -->
+    <label for="nom">Nom :</label>
+    <input type="text" id="nom">
+
+    <label for="prenom">Prénom :</label>
+    <input type="text" id="prenom">
+
+    <label for="bg_color">Couleur de fond :</label>
+    <select id="bg_color">
+      <option value="lightblue">Bleu Clair</option>
+      <option value="lightgreen">Vert Clair</option>
+      <option value="lightcoral">Corail Clair</option>
+      <option value="lightyellow">Jaune Clair</option>
+      <option value="lightpink">Rose Clair</option>
+    </select>
+
+    <label for="text_color">Couleur du texte :</label>
+    <select id="text_color">
+      <option value="black">Noir</option>
+      <option value="white">Blanc</option>
+      <option value="blue">Bleu</option>
+      <option value="green">Vert</option>
+      <option value="red">Rouge</option>
+    </select>
+
+    <label for="width">Largeur du calque :</label>
+    <input type="number" id="width" value="300">
+
+    <label for="height">Hauteur du calque :</label>
+    <input type="number" id="height" value="200">
+
+    <label for="text">Texte :</label>
+    <textarea id="text"></textarea>
+
+    <button id="applyChanges">Appliquer les changements</button>
+    <button id="clearFields">Effacer les champs</button>
+    <button id="removeSpaces">Supprimer les espaces et compter les mots</button>
+
+    <div class="calque" id="clq_coul">
+      <div id="cld_lang"></div>
+    </div>
+
+    <!-- Informations sur la fenêtre -->
+    <div class="output" id="windowInfo"></div>
+  </div>
+
+  <script>
+    // Fonction pour appliquer les changements
+    document.getElementById('applyChanges').addEventListener('click', function() {
+
+      const nom = document.getElementById('nom').value;
+      const prenom = document.getElementById('prenom').value;
+      const bgColor = document.getElementById('bg_color').value;
+      const textColor = document.getElementById('text_color').value;
+      const width = document.getElementById('width').value || 300;
+      const height = document.getElementById('height').value || 200;
+      const text = document.getElementById('text').value;
+
+
+      const clqCoul = document.getElementById('clq_coul');
+      clqCoul.style.backgroundColor = bgColor;
+      clqCoul.style.color = textColor;
+      clqCoul.style.width = width + 'px';
+      clqCoul.style.height = height + 'px';
+
+
+      const cldLang = document.getElementById('cld_lang');
+      cldLang.style.backgroundColor = textColor;
+      cldLang.style.color = bgColor;
+
+
+      cldLang.innerHTML = `
+        Cher ${nom} ${prenom}<br>
+        ${text}<br><br>
+        Langue : ${navigator.language.startsWith('en') ? 'Anglais' :
+                    navigator.language.startsWith('fr') ? 'Français' :
+                    navigator.language.startsWith('es') ? 'Espagnole' : 'Autre Langue'}<br>
+        Taille écran : ${screen.width}x${screen.height}<br>
+        Taille disponible : ${screen.availWidth}x${screen.availHeight}<br>
+        Taille fenêtre : ${window.innerWidth}x${window.innerHeight}
+      `;
+
+
+      const windowInfo = document.getElementById('windowInfo');
+      windowInfo.innerHTML = `
+        Largeur de la fenêtre : ${window.innerWidth}px<br>
+        Hauteur de la fenêtre : ${window.innerHeight}px
+      `;
+    });
+
+
+    document.getElementById('clearFields').addEventListener('click', function() {
+      document.getElementById('nom').value = '';
+      document.getElementById('prenom').value = '';
+      document.getElementById('bg_color').value = 'lightblue';
+      document.getElementById('text_color').value = 'black';
+      document.getElementById('width').value = 300;
+      document.getElementById('height').value = 200;
+      document.getElementById('text').value = '';
+      document.getElementById('clq_coul').style.backgroundColor = '';
+      document.getElementById('clq_coul').style.color = '';
+      document.getElementById('clq_coul').style.width = '';
+      document.getElementById('clq_coul').style.height = '';
+      document.getElementById('cld_lang').innerHTML = '';
+    });
+
+    document.getElementById('removeSpaces').addEventListener('click', function() {
+      const textarea = document.getElementById('text');
+      let trimmedText = textarea.value.trim().replace(/\s+/g, ' ');  // Supprimer les espaces en trop
+      textarea.value = trimmedText;
+
+      const wordCount = trimmedText.split(' ').length;
+      alert(`Le texte contient ${wordCount} mots.`);
+    });
+  </script>
+
+</body>
+</html>

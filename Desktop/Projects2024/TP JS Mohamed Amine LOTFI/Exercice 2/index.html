@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercice 2 - Window Object</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-size: 16px;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      color: white;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Contrôles de fenêtre</h1>
+
+    <label for="adr">Adresse de la page :</label>
+    <input id="adr" type="text" placeholder="Entrez l'URL de la page" />
+
+    <label for="width">Largeur de la fenêtre :</label>
+    <input id="width" type="number" placeholder="600" min="50" step="50" />
+
+    <label for="height">Hauteur de la fenêtre :</label>
+    <input id="height" type="number" placeholder="400" min="50" step="50" />
+
+    <button id="openWindow">Ouvrir la fenêtre</button>
+    <button id="closeWindow">Fermer la fenêtre</button>
+  </div>
+
+  <script>
+    let openedWindow = null;  // Référence à la fenêtre ouverte
+
+    // Fonction pour ouvrir une nouvelle fenêtre
+    document.getElementById("openWindow").addEventListener("click", function() {
+      const url = document.getElementById("adr").value;
+      let width = document.getElementById("width").value || 600;
+      let height = document.getElementById("height").value || 400;
+
+      // Vérification de l'URL
+      if (url === "") {
+        alert("Veuillez entrer une URL.");
+        return;
+      }
+
+      // Si une fenêtre est déjà ouverte, la réutiliser
+      if (openedWindow && !openedWindow.closed) {
+        openedWindow.location.href = url; // Charge l'URL dans la fenêtre ouverte
+      } else {
+        openedWindow = window.open(url, "_blank", `width=${width},height=${height}`);
+      }
+    });
+
+    // Fonction pour fermer la fenêtre ouverte
+    document.getElementById("closeWindow").addEventListener("click", function() {
+      const url = document.getElementById("adr").value;
+
+      // Vérification si la fenêtre est ouverte
+      if (openedWindow && !openedWindow.closed) {
+        if (confirm(`Êtes-vous sûr de vouloir fermer la page ${url}?`)) {
+          openedWindow.close();
+        }
+      } else {
+        alert("Aucune fenêtre à fermer.");
+      }
+    });
+  </script>
+
+</body>
+</html>
