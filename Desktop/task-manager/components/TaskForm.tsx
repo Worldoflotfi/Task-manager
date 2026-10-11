@@ -34,9 +34,9 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
         </label>
 
         <input
-          id="title"
+          id="title" 
           type="text"
-          placeholder="e.g. Learn Prisma"
+          placeholder="e.g. Handle Prisma"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"

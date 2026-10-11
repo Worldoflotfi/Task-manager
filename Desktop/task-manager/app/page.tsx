@@ -49,16 +49,45 @@ export default function Home() {
     loadTasks();
   }, []);
 
-  const addTask = (title: string, description: string) => {
+  
+const addTask = async (title: string, description: string) => {
+  try {
+    setError("");
+
+    const response = await fetch("/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        description,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to create task");
+    }
+
     const newTask: Task = {
-      id: Date.now(),
-      title,
-      description,
-      completed: false,
+      ...data,
+      description: data.description ?? "",
     };
 
     setTasks((currentTasks) => [...currentTasks, newTask]);
-  };
+  } catch (err) {
+    console.error("Error creating task:", err);
+
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Could not save the task."
+    );
+  }
+};
+
 
   const deleteTask = (id: number) => {
     setTasks((currentTasks) =>
