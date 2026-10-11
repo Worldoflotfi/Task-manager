@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,6 +15,8 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const completedCount = tasks.filter((task) => task.completed).length;
 
   useEffect(() => {
     async function loadTasks() {
@@ -36,7 +37,7 @@ export default function Home() {
           data.map((task) => ({
             ...task,
             description: task.description ?? "",
-          }))
+          })),
         );
       } catch (err) {
         console.error("Error loading tasks:", err);
@@ -49,65 +50,93 @@ export default function Home() {
     loadTasks();
   }, []);
 
+  const addTask = async (title: string, description: string) => {
+    try {
+      setError("");
+
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create task");
+      }
+
+      const newTask: Task = {
+        ...data,
+        description: data.description ?? "",
+      };
+
+      setTasks((currentTasks) => [...currentTasks, newTask]);
+    } catch (err) {
+      console.error("Error creating task:", err);
+
+      setError(err instanceof Error ? err.message : "Could not save the task.");
+    }
+  };
+
+  const deleteTask = (id: number) => {
+    setTasks((currentTasks) => currentTasks.filter((task) => task.id !== id));
+  };
+
   
-const addTask = async (title: string, description: string) => {
+const toggleTask = async (id: number) => {
   try {
     setError("");
 
-    const response = await fetch("/api/tasks", {
-      method: "POST",
+    const task = tasks.find((task) => task.id === id);
+
+    if (!task) {
+      return;
+    }
+
+    const newCompleted = !task.completed;
+
+    const response = await fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        title,
-        description,
+        completed: newCompleted,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Failed to create task");
+      throw new Error(data.error || "Failed to update task");
     }
 
-    const newTask: Task = {
-      ...data,
-      description: data.description ?? "",
-    };
-
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    setTasks((currentTasks) =>
+      currentTasks.map((currentTask) =>
+        currentTask.id === id
+          ? {
+              ...currentTask,
+              completed: data.completed,
+            }
+          : currentTask
+      )
+    );
   } catch (err) {
-    console.error("Error creating task:", err);
+    console.error("Error updating task:", err);
 
     setError(
       err instanceof Error
         ? err.message
-        : "Could not save the task."
+        : "Could not update the task."
     );
   }
 };
-
-
-  const deleteTask = (id: number) => {
-    setTasks((currentTasks) =>
-      currentTasks.filter((task) => task.id !== id)
-    );
-  };
-
-  const toggleTask = (id: number) => {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === id
-          ? { ...task, completed: !task.completed }
-          : task
-      )
-    );
-  };
-
-  const completedCount = tasks.filter(
-    (task) => task.completed
-  ).length;
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 sm:px-8">
@@ -129,9 +158,7 @@ const addTask = async (title: string, description: string) => {
         <section className="mb-6 grid grid-cols-2 gap-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Total tasks</p>
-            <p className="mt-2 text-3xl font-bold">
-              {tasks.length}
-            </p>
+            <p className="mt-2 text-3xl font-bold">{tasks.length}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -143,9 +170,7 @@ const addTask = async (title: string, description: string) => {
         </section>
 
         <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <h2 className="mb-4 text-lg font-semibold">
-            Add a new task
-          </h2>
+          <h2 className="mb-4 text-lg font-semibold">Add a new task</h2>
           <TaskForm onAddTask={addTask} />
         </section>
 
