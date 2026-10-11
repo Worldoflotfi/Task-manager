@@ -1,0 +1,12 @@
+// use prisma-8
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
+
+model Tasks {
+  id          Int             @id(map: "tasks_pkey") @default(autoincrement())
+  title       VarChar(255)
+  description String?
+  completed   Boolean         @default(false)
+  createdAt   TimestampString @default(now()) @map("created_at")
+
+  @@map("tasks")
+}

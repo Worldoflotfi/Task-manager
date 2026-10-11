@@ -1,0 +1,12 @@
+
+// use prisma-8
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  title       VarChar(255)
+  description String?
+  completed   Boolean       @default(false)
+  createdAt TimestampString @default(now()) @map("created_at")
+
+  @@map("tasks")
+}

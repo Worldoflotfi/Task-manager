@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TaskCard from "@/components/TaskCard";
 import TaskForm from "@/components/TaskForm";
 
@@ -12,20 +13,41 @@ interface Task {
 }
 
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: "Learn Next.js",
-      description: "Learn Next.js and create a new task manager app",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Learn React",
-      description: "Learn React and create reusable components",
-      completed: true,
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const response = await fetch("/api/tasks");
+
+        if (!response.ok) {
+          throw new Error("Failed to load tasks");
+        }
+
+        const data: Array<
+          Omit<Task, "description"> & {
+            description: string | null;
+          }
+        > = await response.json();
+
+        setTasks(
+          data.map((task) => ({
+            ...task,
+            description: task.description ?? "",
+          }))
+        );
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+        setError("Could not load tasks from the database.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTasks();
+  }, []);
 
   const addTask = (title: string, description: string) => {
     const newTask: Task = {
@@ -54,7 +76,9 @@ export default function Home() {
     );
   };
 
-  const completedCount = tasks.filter((task) => task.completed).length;
+  const completedCount = tasks.filter(
+    (task) => task.completed
+  ).length;
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 sm:px-8">
@@ -76,7 +100,9 @@ export default function Home() {
         <section className="mb-6 grid grid-cols-2 gap-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Total tasks</p>
-            <p className="mt-2 text-3xl font-bold">{tasks.length}</p>
+            <p className="mt-2 text-3xl font-bold">
+              {tasks.length}
+            </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -88,7 +114,9 @@ export default function Home() {
         </section>
 
         <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <h2 className="mb-4 text-lg font-semibold">Add a new task</h2>
+          <h2 className="mb-4 text-lg font-semibold">
+            Add a new task
+          </h2>
           <TaskForm onAddTask={addTask} />
         </section>
 
@@ -100,7 +128,11 @@ export default function Home() {
             </span>
           </div>
 
-          {tasks.length === 0 ? (
+          {loading ? (
+            <p className="text-slate-500">Loading tasks...</p>
+          ) : error ? (
+            <p className="text-red-600">{error}</p>
+          ) : tasks.length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
               <p className="font-medium">No tasks yet</p>
               <p className="mt-1 text-sm text-slate-500">
