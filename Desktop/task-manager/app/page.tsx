@@ -16,6 +16,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const completedCount = tasks.filter((task) => task.completed).length;
 
@@ -88,81 +91,125 @@ export default function Home() {
   const deleteTask = async (id: number) => {
     try {
       setError("");
-  
+
       const response = await fetch(`/api/tasks/${id}`, {
         method: "DELETE",
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete task");
+      }
+
+      setTasks((currentTasks) => currentTasks.filter((task) => task.id !== id));
+
+      setTaskToDelete(null);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+
+      setError(
+        err instanceof Error ? err.message : "Could not delete the task.",
+      );
+    }
+  };
+
+  const toggleTask = async (id: number) => {
+    try {
+      setError("");
+
+      const task = tasks.find((task) => task.id === id);
+
+      if (!task) {
+        return;
+      }
+
+      const newCompleted = !task.completed;
+
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          completed: newCompleted,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update task");
+      }
+
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          currentTask.id === id
+            ? {
+                ...currentTask,
+                completed: data.completed,
+              }
+            : currentTask,
+        ),
+      );
+    } catch (err) {
+      console.error("Error updating task:", err);
+
+      setError(
+        err instanceof Error ? err.message : "Could not update the task.",
+      );
+    }
+  };
+
+  const saveEditedTask = async () => {
+    if (!taskToEdit) return;
+  
+    try {
+      setError("");
+  
+      const response = await fetch(
+        `/api/tasks/${taskToEdit.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: editTitle,
+            description: editDescription,
+          }),
+        }
+      );
   
       const data = await response.json();
   
       if (!response.ok) {
-        throw new Error(data.error || "Failed to delete task");
+        throw new Error(data.error || "Failed to edit task");
       }
   
       setTasks((currentTasks) =>
-        currentTasks.filter((task) => task.id !== id)
+        currentTasks.map((task) =>
+          task.id === taskToEdit.id
+            ? {
+                ...task,
+                title: data.title,
+                description: data.description ?? "",
+              }
+            : task
+        )
       );
   
-      setTaskToDelete(null);
+      setTaskToEdit(null);
     } catch (err) {
-      console.error("Error deleting task:", err);
+      console.error("Error editing task:", err);
   
       setError(
         err instanceof Error
           ? err.message
-          : "Could not delete the task."
+          : "Could not save the task."
       );
     }
   };
-  
-const toggleTask = async (id: number) => {
-  try {
-    setError("");
-
-    const task = tasks.find((task) => task.id === id);
-
-    if (!task) {
-      return;
-    }
-
-    const newCompleted = !task.completed;
-
-    const response = await fetch(`/api/tasks/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        completed: newCompleted,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to update task");
-    }
-
-    setTasks((currentTasks) =>
-      currentTasks.map((currentTask) =>
-        currentTask.id === id
-          ? {
-              ...currentTask,
-              completed: data.completed,
-            }
-          : currentTask
-      )
-    );
-  } catch (err) {
-    console.error("Error updating task:", err);
-
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Could not update the task."
-    );
-  }
-};
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 sm:px-8">
@@ -229,6 +276,11 @@ const toggleTask = async (id: number) => {
                   completed={task.completed}
                   onToggle={() => toggleTask(task.id)}
                   onDelete={() => setTaskToDelete(task)}
+                  onEdit={() => {
+                    setTaskToEdit(task);
+                    setEditTitle(task.title);
+                    setEditDescription(task.description);
+                  }}
                 />
               ))}
             </div>
@@ -240,72 +292,158 @@ const toggleTask = async (id: number) => {
         </footer>
       </div>
 
-     {/* Delete confirmation modal */}
-{taskToDelete && (
+      {/* Edit task modal */}
+{taskToEdit && (
   <div
     className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-    onClick={() => setTaskToDelete(null)}
+    onClick={() => setTaskToEdit(null)}
   >
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="delete-modal-title"
-      className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+      aria-labelledby="edit-modal-title"
+      className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
       onClick={(event) => event.stopPropagation()}
     >
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v3m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z"
-          />
-        </svg>
-      </div>
-
       <h2
-        id="delete-modal-title"
-        className="text-lg font-bold tracking-tight text-slate-900"
+        id="edit-modal-title"
+        className="text-xl font-bold tracking-tight text-slate-900"
       >
-        Delete this task?
+        Edit task
       </h2>
 
-      <p className="mt-1.5 wrap-break text-sm leading-5 text-slate-500">
-        Are you sure you want to delete the task {" "}
-        <span className="font-semibold text-slate-700">
-          {taskToDelete.title}
-        </span>
-        ? This action cannot be undone.
+      <p className="mt-1 text-sm text-slate-500">
+        Update your task details below.
       </p>
+
+      <div className="mt-5 space-y-4">
+        <div>
+          <label
+            htmlFor="edit-title"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+          >
+            Task title
+          </label>
+
+          <input
+            id="edit-title"
+            type="text"
+            maxLength={255}
+            value={editTitle}
+            onChange={(event) => setEditTitle(event.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            placeholder="Enter task title"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="edit-description"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+          >
+            Description
+          </label>
+
+          <textarea
+            id="edit-description"
+            rows={3}
+            value={editDescription}
+            onChange={(event) =>
+              setEditDescription(event.target.value)
+            }
+            className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            placeholder="Enter task description"
+          />
+        </div>
+      </div>
 
       <div className="mt-5 flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => setTaskToDelete(null)}
-          className="rounded-xl border border-slate-200  bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition"
+          onClick={() => setTaskToEdit(null)}
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
         >
           Cancel
         </button>
 
         <button
           type="button"
-          onClick={() => deleteTask(taskToDelete.id)}
-          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+          onClick={saveEditedTask}
+          disabled={!editTitle.trim()}
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Delete task
+          Save changes
         </button>
       </div>
     </div>
   </div>
 )}
 
+      {/* Delete confirmation modal */}
+      {taskToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          onClick={() => setTaskToDelete(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="q0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z"
+                />
+              </svg>
+            </div>
+
+            <h2
+              id="delete-modal-title"
+              className="text-lg font-bold tracking-tight text-slate-900"
+            >
+              Delete this task?
+            </h2>
+
+            <p className="mt-1.5 wrap-break text-sm leading-5 text-slate-500">
+              Are you sure you want to delete the task{" "}
+              <span className="font-semibold text-slate-700">
+                {taskToDelete.title}
+              </span>
+              ? This action cannot be undone.
+            </p>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setTaskToDelete(null)}
+                className="rounded-xl border border-slate-200  bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => deleteTask(taskToDelete.id)}
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Delete task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

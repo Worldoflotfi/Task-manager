@@ -4,6 +4,7 @@ interface TaskCardProps {
   completed: boolean;
   onDelete: () => void;
   onToggle: () => void;
+  onEdit: () => void;
 }
 
 export default function TaskCard({
@@ -12,6 +13,7 @@ export default function TaskCard({
   completed,
   onDelete,
   onToggle,
+  onEdit,
 }: TaskCardProps) {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
@@ -43,6 +45,12 @@ export default function TaskCard({
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"          >
+            Edit
+          </button>
           <button
             type="button"
             onClick={onToggle}
