@@ -17,7 +17,7 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // Update completion status
+    
     if (typeof body?.completed === "boolean") {
       const updatedTask = await db.orm.public.Task
         .where({ id: taskId })
