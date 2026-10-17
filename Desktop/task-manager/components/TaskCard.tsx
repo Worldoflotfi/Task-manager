@@ -5,6 +5,7 @@ interface TaskCardProps {
   onDelete: () => void;
   onToggle: () => void;
   onEdit: () => void;
+  isToggling: boolean,
 }
 
 export default function TaskCard({
@@ -14,6 +15,7 @@ export default function TaskCard({
   onDelete,
   onToggle,
   onEdit,
+  isToggling,
 }: TaskCardProps) {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
@@ -60,7 +62,7 @@ export default function TaskCard({
                 : "bg-emerald-600 text-white hover:bg-emerald-700"
             }`}
           >
-            {completed ? "Undo" : "Complete"}
+            {isToggling ? "Updating.." : completed ? "Undo" : "Complete"}
           </button>
 
           <button

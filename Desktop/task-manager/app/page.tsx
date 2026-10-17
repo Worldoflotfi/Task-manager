@@ -21,7 +21,11 @@ export default function Home() {
   const [editDescription, setEditDescription] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [search, setSearch] = useState("");
+  // Loading states for adding, editing, deleting and saving tasks
   const [isAdding, setIsAdding] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<number | null>(null);
+  const [togglingTaskId, setTogglingTaskId] = useState<number | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const completedCount = tasks.filter((task) => task.completed).length;
 
@@ -116,6 +120,7 @@ export default function Home() {
   const deleteTask = async (id: number) => {
     try {
       setError("");
+      setDeletingTaskId(id);
 
       const response = await fetch(`/api/tasks/${id}`, {
         method: "DELETE",
@@ -136,12 +141,15 @@ export default function Home() {
       setError(
         err instanceof Error ? err.message : "Could not delete the task.",
       );
+    } finally {
+      setDeletingTaskId(null);
     }
   };
 
   const toggleTask = async (id: number) => {
     try {
       setError("");
+      setTogglingTaskId(id); //records which task is updating
 
       const task = tasks.find((task) => task.id === id);
 
@@ -183,6 +191,8 @@ export default function Home() {
       setError(
         err instanceof Error ? err.message : "Could not update the task.",
       );
+    } finally {
+      setTogglingTaskId(null); //resets the loading state when the request finishes
     }
   };
 
@@ -191,6 +201,7 @@ export default function Home() {
 
     try {
       setError("");
+      setIsSavingEdit(true);
 
       const response = await fetch(`/api/tasks/${taskToEdit.id}`, {
         method: "PATCH",
@@ -226,6 +237,8 @@ export default function Home() {
       console.error("Error editing task:", err);
 
       setError(err instanceof Error ? err.message : "Could not save the task.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -337,6 +350,7 @@ export default function Home() {
                     setEditTitle(task.title);
                     setEditDescription(task.description);
                   }}
+                  isToggling={togglingTaskId === task.id}
                 />
               ))}
             </div>
@@ -344,7 +358,7 @@ export default function Home() {
         </section>
 
         <footer className="mt-10 text-center text-sm text-slate-400">
-          Task Manager · Built with Next.js, React and TypeScript
+          · Built with Next.js, React and TypeScript by Lotfy ·
         </footer>
       </div>
 
@@ -423,10 +437,10 @@ export default function Home() {
               <button
                 type="button"
                 onClick={saveEditedTask}
-                disabled={!editTitle.trim()}
+                disabled={isSavingEdit}
                 className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Save changes
+                {isSavingEdit ? "Saving.." : "Save"}
               </button>
             </div>
           </div>
@@ -490,9 +504,12 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => deleteTask(taskToDelete.id)}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                disabled={deletingTaskId === taskToDelete.id}
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Delete task
+                {deletingTaskId === taskToDelete.id
+                  ? "Deleting..."
+                  : "Delete task"}
               </button>
             </div>
           </div>
