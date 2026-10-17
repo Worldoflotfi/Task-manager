@@ -3,24 +3,27 @@
 import { useState } from "react";
 
 interface TaskFormProps {
-  onAddTask: (title: string, description: string) => void;
+  onAddTask: (title: string, description: string) => Promise<boolean>;
+  isAdding: boolean;
 }
 
-export default function TaskForm({ onAddTask }: TaskFormProps) {
+export default function TaskForm({ onAddTask, isAdding }: TaskFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!title.trim()) {
+    if (!title.trim() || isAdding) {
       return;
     }
 
-    onAddTask(title.trim(), description.trim());
+    const success = await onAddTask(title.trim(), description.trim());
 
-    setTitle("");
-    setDescription("");
+    if (success) {
+      setTitle("");
+      setDescription("");
+    }
   };
 
   return (
@@ -34,7 +37,7 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
         </label>
 
         <input
-          id="title" 
+          id="title"
           type="text"
           placeholder="e.g. Handle Prisma"
           value={title}
@@ -63,9 +66,10 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99] sm:w-auto"
+        disabled={isAdding || !title.trim()}
+        className="w-full rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
-        + Add Task
+        {isAdding ? "Adding..." : "+ Add Task"}
       </button>
     </form>
   );

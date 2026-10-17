@@ -21,6 +21,7 @@ export default function Home() {
   const [editDescription, setEditDescription] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [search, setSearch] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const completedCount = tasks.filter((task) => task.completed).length;
 
@@ -74,6 +75,7 @@ export default function Home() {
   const addTask = async (title: string, description: string) => {
     try {
       setError("");
+      setIsAdding(true);
 
       const response = await fetch("/api/tasks", {
         method: "POST",
@@ -98,10 +100,16 @@ export default function Home() {
       };
 
       setTasks((currentTasks) => [...currentTasks, newTask]);
+
+      return true;
     } catch (err) {
       console.error("Error creating task:", err);
 
       setError(err instanceof Error ? err.message : "Could not save the task.");
+
+      return false;
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -254,7 +262,7 @@ export default function Home() {
 
         <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <h2 className="mb-4 text-lg font-semibold">Add a new task</h2>
-          <TaskForm onAddTask={addTask} />
+          <TaskForm onAddTask={addTask} isAdding={isAdding} />
         </section>
 
         <section>
