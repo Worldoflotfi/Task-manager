@@ -1,3 +1,4 @@
+
 interface TaskCardProps {
   title: string;
   description: string;
@@ -5,7 +6,7 @@ interface TaskCardProps {
   onDelete: () => void;
   onToggle: () => void;
   onEdit: () => void;
-  isToggling: boolean,
+  isToggling: boolean;
 }
 
 export default function TaskCard({
@@ -18,26 +19,45 @@ export default function TaskCard({
   isToggling,
 }: TaskCardProps) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <article
+      className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:p-6 ${
+        completed
+          ? "border-emerald-100 hover:shadow-emerald-900/5"
+          : "border-slate-200 hover:border-indigo-200 hover:shadow-indigo-900/5"
+      }`}
+    >
+      <div
+        className={`absolute inset-y-0 left-0 w-1 ${
+          completed ? "bg-emerald-400" : "bg-indigo-500"
+        }`}
+      />
+
+      <div className="flex flex-col gap-5 pl-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-3">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
             <h3
-              className={`wrap-break-word text-lg font-semibold ${
-                completed ? "text-slate-400 line-through" : "text-slate-800"
+              className={`wrap-break-word text-base font-bold tracking-tight transition sm:text-lg ${
+                completed
+                  ? "text-slate-400 line-through decoration-emerald-400"
+                  : "text-slate-800"
               }`}
             >
               {title}
             </h3>
 
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
                 completed
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-amber-100 text-amber-700"
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100"
+                  : "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-100"
               }`}
             >
-              {completed ? "Completed" : "Pending"}
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  completed ? "bg-emerald-500" : "bg-amber-500"
+                }`}
+              />
+              {completed ? "Completed" : "In progress"}
             </span>
           </div>
 
@@ -50,25 +70,28 @@ export default function TaskCard({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"          >
+            className="rounded-lg border border-indigo-100 bg-indigo-50 px-3.5 py-2 text-sm font-semibold text-indigo-700 transition duration-200 hover:border-indigo-200 hover:bg-indigo-100 active:scale-95"
+          >
             Edit
           </button>
+
           <button
             type="button"
             onClick={onToggle}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+            disabled={isToggling}
+            className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
               completed
-                ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                ? "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                : "bg-indigo-600 text-white shadow-sm shadow-indigo-600/15 hover:bg-indigo-700"
             }`}
           >
-            {isToggling ? "Updating.." : completed ? "Undo" : "Complete"}
+            {isToggling ? "Updating..." : completed ? "Undo" : "Complete"}
           </button>
 
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+            className="rounded-lg border border-red-100 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 transition duration-200 hover:border-red-200 hover:bg-red-50 active:scale-95"
           >
             Delete
           </button>
