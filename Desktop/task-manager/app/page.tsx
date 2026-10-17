@@ -243,7 +243,7 @@ export default function Home() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                Task Manager<span className="text-indigo-600">.</span>
+                TaskPilot<span className="text-indigo-600">.</span>
               </h1>
               <p className="mt-3 max-w-lg text-sm leading-6 text-slate-500 sm:text-base">
                 Clear your mind, organize your priorities, and make progress
